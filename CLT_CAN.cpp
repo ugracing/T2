@@ -54,8 +54,13 @@ void set_sendRate(float sendRate){
     ticker.detach();
     ticker.attach(&send, sendRate);
     }
-    
+
 
 void initialise() {
     ticker.attach(&send, 1);  //Default sends CAN message every second
+}
+int main()
+{
+    initialise();
+    while(1);
 }
