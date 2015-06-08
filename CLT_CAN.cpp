@@ -23,7 +23,7 @@ CAN can(p30, p29);
 AnalogIn sensor(p20);
 
 //Calcuates temperature from an analog value
-float get_temperature()
+float getTemperature()
 {
     float analog_in = 0;
     float voltage_in = 0;
@@ -44,21 +44,22 @@ float get_temperature()
 //Writes a message to the CAN bus
 void send()
 {
-    char temperature = (int)get_temperature();
-    if (can.write(CANMessage(10, &temperature, 1))) {
+    char temperature = (int)getTemperature();
+    char msg[2] = {0x80, temperature}; //0x80 means info message
+    if (can.write(CANMessage(10, msg, 2))) {
         led1 = !led1;
     }
 }
 
-void set_sendRate(float sendRate){
-    ticker.detach();
+void setSendRate(float sendRate){
     ticker.attach(&send, sendRate);
     }
-
+    
 
 void initialise() {
     ticker.attach(&send, 1);  //Default sends CAN message every second
 }
+
 int main()
 {
     initialise();
