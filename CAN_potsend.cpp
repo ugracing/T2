@@ -12,11 +12,16 @@ AnalogIn speed_pot(p19);
 char counter = 0;
  
 void sendTemp() {
-    char temp;
-    temp = (int)(255.0*temp_pot);
+    union{
+        char c[4];
+        float f;
+    };
+    f = temp_pot;
+    //The message is defined as as info, reading, float. 
+    char outArray[5] = {0x81, c[0], c[1], c[2], c[3]};
     //printf("send()\n\r");
     //printf("%f\n\r", x);
-    if(can1.write(CANMessage(500, &temp, 1))) {
+    if(can1.write(CANMessage(500, outArray, 5))) {
         //printf("wloop()\n\r");
         counter++;
         //printf("Message sent: %d\n\r", temp);

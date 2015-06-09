@@ -29,10 +29,43 @@ void setTempPoll(){
 }
 
 void CANRecivedMessage(CANMessage msg){
-        //pc.printf("Message received: %d from ID:%d\n\r", msg.data[0], msg.id);
-        pc.printf("Message recieved of length %d : ", msg.len);
+        //This is an ungodly union to convert from the characters to whatever you need.
+        union{
+            char c[4];
+            float f;
+            int i;
+            long l;
+        };
+        
+        pc.printf("Message recieved of length %d :  ", msg.len);
+        //Print all the characters from the message in order.
         for(int i = 0; i < msg.len; i++){
-            pc.printf("%d ", msg.data[i]);
+            pc.printf("%d, ", msg.data[i]);
+        }
+        
+        //fill the union
+        for(int i = 1; (i < 5) && (i < msg.len); i++){
+            c[i - 1] = msg.data[i];
+        }
+        //Print the data type defined by the first character and convery the characters to that type and display. 
+        //The bitwise AND seperates the character to give us only the first two digits.
+        switch(msg.data[0] & 0x03){
+            case 0:
+                //message is a character
+                pc.printf("character: %d ", c[0]);
+                break;
+            case 1:
+                //message is a float
+                pc.printf("float: %f ", f);
+                break;
+            case 2:
+                //message is an int
+                pc.printf("integer: %i ", i);
+                break;
+            case 3:
+                //message is a long
+                pc.printf("long: %l ", l);
+                break;
         }
         pc.printf("from ID %d\n\r", msg.id);
         pc.printf("Reed errors:%d\n\r", can1.rderror());
@@ -43,9 +76,12 @@ int main() {
     pc.baud(115200);
     led2 = 1;
     CANMessage msg;
+    
+    //Set a timer to change the polling rate for the temp sensor after 10 seconds. See if it actually works and all that...
     pollChange.attach(setTempPoll, 10.0);
 
     wait(1);
+    
     while(1) {
         led1 = !led1;
         if(can1.read(msg)) {
